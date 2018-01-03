@@ -3,7 +3,7 @@ from PIL import Image, ImageTk
 import os
 import ctypes
 import time
-from screeninfo import get_monitors
+
 try:
     # Python2
     import Tkinter as tk
@@ -25,6 +25,7 @@ class SlideShowApp(tk.Tk):
         self.picture_display = tk.Label(self)
         self.picture_display.pack()
         self.configure(background='black')
+        print("resolution:",(self.winfo_screenwidth(),self.winfo_screenheight()))
     def show_slides(self):
         '''cycle through the images and show them'''
         # next works with Python26 or higher
@@ -35,7 +36,7 @@ class SlideShowApp(tk.Tk):
         self.mainloop()
 
     def setup(self,folderList):
-
+        width,height=self.winfo_screenwidth(),self.winfo_screenheight()
         self.image_files=[]
         for folder in folderList:
             #folder="Youssef"
@@ -66,46 +67,18 @@ class SlideShowApp(tk.Tk):
                     self.image_files.append(raw_image.resize((iwidth,iheight), Image.BILINEAR))
 
 #getting current display resolution (Windows)
-user32 = ctypes.windll.user32
-width, height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+#user32 = ctypes.windll.user32
+#width, height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
 #print(os.listdir())
-print(width,height)
-for m in get_monitors():
-    print(str(m))
-"""
-#path and image folder name
-folder="Youssef"
-path=os.getcwd()+"\\"+folder
-#getting the list of file in current directory
-imgFileExtension=("gif","jpg","png")
-imglist=[]
-imgNameList=[files for roots,dirs,files in os.walk(path, topdown=True)][0]
-print(imgNameList)
-#check which one is an image
-#imgchecker={file: any(file.lower().endswith(ext) for ext in imgFileExtension) for file in os.listdir()}
-imgchecker={file: file.lower().endswith(imgFileExtension) for file in imgNameList}
-print(imgchecker)
-#add the images to a list
-for file_name in imgchecker:
-    if imgchecker[file_name]:
-        subpath=path+"\\"+file_name
-        raw_image=Image.open(subpath)
-        iwidth,iheight=raw_image.size
-        scalew=height/iheight
-        scaleh=width/iwidth
-        #scale the image along the height of the monitor
-        iheight=height
-        iwidth=int(iwidth*scalew)
-        #resizing the image to current resolution
-        imglist.append(raw_image.resize((iwidth,iheight), Image.BILINEAR))
-"""
+
 # set milliseconds time between slides
 delay = 3000
 
 # upper left corner coordinates of app window
 #x = 100
 #y = 50
+#put the desired image folder in 'alldir' list
 alldir=[]
 for i in os.listdir():
      if os.path.isdir(os.getcwd()+"\\"+i):
