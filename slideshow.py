@@ -44,10 +44,10 @@ class SlideShowApp(tk.Tk):
             path=os.getcwd()+"\\"+folder
 
             #getting the list of file in current directory
-            imgFileExtension=("gif","jpg","png")
+            imgFileExtension=("gif","jpg","png","jpeg")
             #imglist=[]
             imgNameList=[files for roots,dirs,files in os.walk(path, topdown=True)][0]
-            print(imgNameList)
+            print("File list: ",imgNameList)
 
             #check which one is an image
             #imgchecker={file: any(file.lower().endswith(ext) for ext in imgFileExtension) for file in os.listdir()}
@@ -71,20 +71,20 @@ class SlideShowApp(tk.Tk):
 #width, height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
 #print(os.listdir())
+if __name__ == "__main__":
+    # set milliseconds time between slides
+    delay = 3000
 
-# set milliseconds time between slides
-delay = 3000
-
-# upper left corner coordinates of app window
-#x = 100
-#y = 50
-#put the desired image folder in 'alldir' list
-alldir=[]
-for i in os.listdir():
-     if os.path.isdir(os.getcwd()+"\\"+i):
-         alldir.append(i)
-print(alldir)
-#app = SlideShowApp(["Duy Tang","Youssef"], delay)
-app = SlideShowApp(alldir, delay)
-app.show_slides()
-app.run()
+    # upper left corner coordinates of app window
+    #x = 100
+    #y = 50
+    #put the desired image folder in 'alldir' list
+    alldir=[]
+    for i in os.listdir():
+         if os.path.isdir(os.getcwd()+"\\"+i):
+             alldir.append(i)
+    print(alldir)
+    #app = SlideShowApp(["Duy Tang","Youssef"], delay)
+    app = SlideShowApp(alldir, delay)
+    app.show_slides()
+    app.run()
