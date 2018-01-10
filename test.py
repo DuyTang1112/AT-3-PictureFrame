@@ -1,3 +1,4 @@
+
 #file chooser GUI
 def chooseFile():
     import tkinter
@@ -8,4 +9,5 @@ def chooseFile():
     print(filepath)
 
 if __name__=="__main__":
-    chooseFile()
+    #chooseFile()
+    sendmsg('Hello')
