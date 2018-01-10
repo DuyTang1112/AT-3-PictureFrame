@@ -41,11 +41,7 @@ class SlideShowApp(tk.Tk):
         for folder in folderList:
             #folder="Youssef"
             #path and image folder name
-            path=''
-            if os.name=="nt":
-                path=os.getcwd()+"\\"+folder
-            elif os.name=='posix':
-                path=os.getcwd()+"/"+folder
+            path=os.getcwd()+"/"+folder
 
             #getting the list of file in current directory
             imgFileExtension=("gif","jpg","png","jpeg")
@@ -60,11 +56,7 @@ class SlideShowApp(tk.Tk):
             #add the images to a list
             for file_name in imgchecker:
                 if imgchecker[file_name]:
-                    subpath=''
-                    if os.name=='nt':
-                        subpath=path+"\\"+file_name
-                    elif os.name=='posix':
-                        subpath=path+"/"+file_name
+                    subpath=path+"/"+file_name
                     raw_image=Image.open(subpath)
                     iwidth,iheight=raw_image.size
                     scalew=height/iheight
@@ -89,7 +81,7 @@ if __name__ == "__main__":
     #put the desired image folder in 'alldir' list
     alldir=[]
     for i in os.listdir():
-         if os.path.isdir(os.getcwd()+"\\"+i):
+         if os.path.isdir(os.getcwd()+ "/" +i):
              alldir.append(i)
     print(alldir)
     #app = SlideShowApp(["Duy Tang","Youssef"], delay)
