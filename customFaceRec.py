@@ -10,7 +10,7 @@ import numpy as np
 import os
 
 
-def run_face_rec(app,delay):
+def run_face_rec(app,newPerson):
     # Get a reference to the Raspberry Pi camera.
     # If this fails, make sure you have a camera connected to the RPi and that you
     # enabled your camera in raspi-config and rebooted first.
@@ -78,7 +78,11 @@ def run_face_rec(app,delay):
                     if known_name not in folderList:
                         folderList[known_name]=True
                         if app!=None:
-                            app.addFolder(known_name)
+                            #app.lock.acquire()
+                            #app.addFolder(known_name)
+                            newPerson.put(known_name)
+                            print(newPerson.qsize())
+                            #app.lock.release()
                     found_3+=1         
                     
             print("I see someone named {}!".format(name))

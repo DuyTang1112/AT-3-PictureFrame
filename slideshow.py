@@ -5,7 +5,8 @@ import ctypes
 import time
 #import threading
 from customFaceRec import *
-from multiprocessing import Process, Lock
+from multiprocessing import Process, Lock, Queue
+from collections import deque
 try:
     # Python2
     import Tkinter as tk
@@ -22,9 +23,9 @@ class SlideShowApp(Process):
         
         
     def run(self):
-        self.lock.acquire()
+        
         self.initialize(self.folderList,self.delay)
-        self.lock.release()
+        
     def callback(self):
         self.root.quit()
         
@@ -38,6 +39,7 @@ class SlideShowApp(Process):
         # allows repeat cycling through the pictures
         self.pictures = cycle(ImageTk.PhotoImage(image) for image in self.image_files) if len(self.image_files)!=0 else []
         self.picture_display = tk.Label(self.root)
+        self.picture_display['text']="Loading components.\n Please wait";
         self.picture_display.pack()
         self.root.configure(background='black')
         print("resolution:",(self.root.winfo_screenwidth(),self.root.winfo_screenheight()))
@@ -47,13 +49,24 @@ class SlideShowApp(Process):
         
     def show_slides(self):
         '''cycle through the images and show them'''
+        #self.lock.acquire()
+        print('calling showslides with newperson'+str(self.newPerson.qsize()))
         # next works with Python26 or higher
+        if (self.newPerson.qsize())!=0:
+            while self.newPerson.qsize()>0:
+                try:
+                    self.folderList.append(self.newPerson.get())
+                except:
+                    break
+            self.setup(self.folderList)
+            self.pictures = cycle(ImageTk.PhotoImage(image) for image in self.image_files) if len(self.image_files)!=0 else []
         if len(self.image_files)==0:
+            self.root.after(self.delay, self.show_slides)
             return
         img_object= next(self.pictures) 
         self.picture_display.config(image=img_object)
         self.root.after(self.delay, self.show_slides)
-        
+        #self.lock.release()
     def clone(self):
         _clone=SlideShowApp(self.folderList,self.delay,self.lock)
         return _clone
@@ -82,12 +95,12 @@ class SlideShowApp(Process):
             imgFileExtension=("gif","jpg","png","jpeg")
             #imglist=[]
             imgNameList=[files for roots,dirs,files in os.walk(path, topdown=True)][0]
-            print("File list: ",imgNameList)
+            #print("File list: ",imgNameList)
 
             #check which one is an image
             #imgchecker={file: any(file.lower().endswith(ext) for ext in imgFileExtension) for file in os.listdir()}
             imgchecker={file: file.lower().endswith(imgFileExtension) for file in imgNameList}
-            print(imgchecker)
+            #print(imgchecker)
             #add the images to a list
             for file_name in imgchecker:
                 if imgchecker[file_name]:
@@ -125,8 +138,12 @@ if __name__ == "__main__":
     """
     #app = SlideShowApp(["Duy Tang","Youssef"], delay)
     app = SlideShowApp([], delay, lock)
+    app.newPerson=Queue()
+    app.start()
     #app.stop()
     #app.show_slides()
     #app.run()
-    run_face_rec(app,delay)#running face recognition will populate the lis of recognizable persons
-    app.start()
+    run_face_rec(app,app.newPerson) #running face recognition will populate the lis of recognizable persons
+    app.join(20000)
+    app.terminate()
+    #app.start()
