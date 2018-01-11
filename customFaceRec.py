@@ -9,8 +9,8 @@ import picamera
 import numpy as np
 import os
 
-if __name__ =="__main__":
-    
+
+def run_face_rec(app,newPerson):
     # Get a reference to the Raspberry Pi camera.
     # If this fails, make sure you have a camera connected to the RPi and that you
     # enabled your camera in raspi-config and rebooted first.
@@ -32,7 +32,7 @@ if __name__ =="__main__":
     for file in filelist:
         if file.lower().endswith(imgFileExt):
             imgList.append(file)
-    nameList=[]
+    
     known_encodings=[]
     for filename in imgList:
         person=filename[:filename.find(".")]
@@ -50,8 +50,13 @@ if __name__ =="__main__":
     # Initialize some variables
     face_locations = []
     face_encodings = []
-    found_me=False
-    while not found_me:
+    found_3=0
+    
+    folderList={}
+    #start a new thread to display images
+    #pid=None if app==None else app.pid
+    #lock=None if app==None else app.lock
+    while found_3!=3:
         print("Capturing image.")
         # Grab a single frame of video from the RPi camera as a numpy array
         camera.capture(output, format="rgb")
@@ -69,8 +74,20 @@ if __name__ =="__main__":
                 match = face_recognition.compare_faces([known_encoding], face_encoding,threshold)
                 
                 if match[0]:
-                    name = known_name
-                    if name=="Duy":
-                        found_me=True            
-                    break
+                    name=known_name
+                    if known_name not in folderList:
+                        folderList[known_name]=True
+                        if app!=None:
+                            #app.lock.acquire()
+                            #app.addFolder(known_name)
+                            newPerson.put(known_name)
+                            print(newPerson.qsize())
+                            #app.lock.release()
+                    found_3+=1         
+                    
             print("I see someone named {}!".format(name))
+    camera.close()
+    
+if __name__ =="__main__":
+    run_face_rec(None,None)
+   
