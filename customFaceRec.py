@@ -8,9 +8,9 @@ import face_recognition
 import picamera
 import numpy as np
 import os
+from multiprocessing import Process
 
-
-def run_face_rec(app,newPerson):
+def run_face_rec(app):
     # Get a reference to the Raspberry Pi camera.
     # If this fails, make sure you have a camera connected to the RPi and that you
     # enabled your camera in raspi-config and rebooted first.
@@ -25,17 +25,18 @@ def run_face_rec(app,newPerson):
 
     #reading from "users" folder
     path=os.getcwd()+"/users"
-    print(path)
+    #print(path)
     imgFileExt=("gif","jpg","jpeg","png")
     filelist=[files for r,dirs,files in os.walk(path,topdown=True)][0] #get the list of all files
     imgList=[]
+    #Select the file with name that like this "_abc.jpeg" 
     for file in filelist:
-        if file.lower().endswith(imgFileExt):
+        if file.lower().endswith(imgFileExt) and file[0]=="_":
             imgList.append(file)
-    
+    print(imgList)
     known_encodings=[]
     for filename in imgList:
-        person=filename[:filename.find(".")]
+        person=filename[1:filename.find(".")]
         print("Loading sample face from "+person)
         face_encoding=face_recognition.face_encodings(face_recognition.load_image_file(path+"/"+filename))[0]
         known_encodings.append((face_encoding,person))
@@ -50,20 +51,22 @@ def run_face_rec(app,newPerson):
     # Initialize some variables
     face_locations = []
     face_encodings = []
-    found_3=0
+    found=0
     
     folderList={}
     #start a new thread to display images
     #pid=None if app==None else app.pid
     #lock=None if app==None else app.lock
-    while found_3!=3:
-        print("Capturing image.")
+    if app!=None:
+        app.newPerson.put("#Start capturing...")
+    while found!=5:
+        print("Capturing ...")
         # Grab a single frame of video from the RPi camera as a numpy array
         camera.capture(output, format="rgb")
 
         # Find all the faces and face encodings in the current frame of video
         face_locations = face_recognition.face_locations(output)
-        print("Found {} faces in image.".format(len(face_locations)))
+        print("Found {} face(s)".format(len(face_locations)))
         face_encodings = face_recognition.face_encodings(output, face_locations)
 
         # Loop over each face found in the frame to see if it's someone we know.
@@ -72,7 +75,6 @@ def run_face_rec(app,newPerson):
             name = "<Unknown Person>"
             for known_encoding,known_name in known_encodings:
                 match = face_recognition.compare_faces([known_encoding], face_encoding,threshold)
-                
                 if match[0]:
                     name=known_name
                     if known_name not in folderList:
@@ -80,14 +82,20 @@ def run_face_rec(app,newPerson):
                         if app!=None:
                             #app.lock.acquire()
                             #app.addFolder(known_name)
-                            newPerson.put(known_name)
-                            print(newPerson.qsize())
+                            app.newPerson.put(known_name)
+                            print(app.newPerson.qsize())
                             #app.lock.release()
-                    found_3+=1         
+                    found+=1
+                    break
                     
-            print("I see someone named {}!".format(name))
+            print("{} detected!".format(name))
     camera.close()
-    
+    print("Stop capturing")
+def test(s):
+    print(s)
 if __name__ =="__main__":
-    run_face_rec(None,None)
+    p=Process(target=run_face_rec, args=(None,))
+    p.start()
+    p.join()
+    #run_face_rec(None)
    

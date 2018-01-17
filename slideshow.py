@@ -35,10 +35,11 @@ class SlideShowApp(Process):
         # set x, y position only
         #self.geometry('+{}+{}'.format(x, y))
         self.root.attributes("-fullscreen", True)
+        self.image_files=[]
         self.setup(folderList)
         # allows repeat cycling through the pictures
         self.pictures = cycle(ImageTk.PhotoImage(image) for image in self.image_files) if len(self.image_files)!=0 else []
-        self.picture_display = tk.Label(self.root)
+        self.picture_display = tk.Label(self.root, fg="red",font=("Courier",44))
         self.picture_display['text']="Loading components.\n Please wait";
         self.picture_display.pack()
         self.root.configure(background='black')
@@ -50,15 +51,18 @@ class SlideShowApp(Process):
     def show_slides(self):
         '''cycle through the images and show them'''
         #self.lock.acquire()
-        print('calling showslides with newperson'+str(self.newPerson.qsize()))
-        # next works with Python26 or higher
+        #print('calling showslides with newperson'+str(self.newPerson.qsize()))
         if (self.newPerson.qsize())!=0:
             while self.newPerson.qsize()>0:
                 try:
-                    self.folderList.append(self.newPerson.get())
+                    something=self.newPerson.get()
+                    if something[0]=="#": # "#" denotes an incoming message
+                       self.picture_display['text']=something[1:]
+                    else:
+                        self.addFolder(something)
                 except:
                     break
-            self.setup(self.folderList)
+            #self.setup(self.folderList)
             self.pictures = cycle(ImageTk.PhotoImage(image) for image in self.image_files) if len(self.image_files)!=0 else []
         if len(self.image_files)==0:
             self.root.after(self.delay, self.show_slides)
@@ -79,12 +83,12 @@ class SlideShowApp(Process):
         
     def addFolder(self,folder):
         self.folderList.append(folder)
+        self.setup([folder])
         #self.setup(self.folderList)
         #self.pictures = cycle(ImageTk.PhotoImage(image) for image in self.image_files)
         
     def setup(self,folderList):
         width,height=self.root.winfo_screenwidth(),self.root.winfo_screenheight()
-        self.image_files=[]
         for folder in folderList:
             #folder="Youssef"
             #path and image folder name
@@ -123,27 +127,15 @@ class SlideShowApp(Process):
 if __name__ == "__main__":
     # set milliseconds time between slides
     delay = 3000
-    print(os.name)
     lock=Lock()
-    # upper left corner coordinates of app window
-    #x = 100
-    #y = 50
-    #put the desired image folder in 'alldir' list
-    """
-    alldir=[]
-    for i in os.listdir():
-         if os.path.isdir(os.getcwd()+ "/" +i):
-             alldir.append(i)
-    print(alldir)
-    """
-    #app = SlideShowApp(["Duy Tang","Youssef"], delay)
+    
     app = SlideShowApp([], delay, lock)
     app.newPerson=Queue()
     app.start()
-    #app.stop()
-    #app.show_slides()
-    #app.run()
-    run_face_rec(app,app.newPerson) #running face recognition will populate the lis of recognizable persons
-    app.join(20000)
-    app.terminate()
+    p=Process(target=run_face_rec, args=(app,))
+    p.start()
+    p.join()
+    #run_face_rec(app) #running face recognition will populate the lis of recognizable persons
+    app.join()
+    #app.terminate()
     #app.start()
