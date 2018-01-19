@@ -59,8 +59,12 @@ def run_face_rec(app):
     #lock=None if app==None else app.lock
     if app!=None:
         app.newPerson.put("#Start capturing...")
-    while found!=5:
+    while found<len(known_encodings):
         print("Capturing ...")
+        if app!=None:
+            if app.exitQueue.qsize()>0:
+                if app.exitQueue.get()=='x':
+                    break
         # Grab a single frame of video from the RPi camera as a numpy array
         camera.capture(output, format="rgb")
 

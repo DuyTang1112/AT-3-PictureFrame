@@ -39,8 +39,9 @@ class SlideShowApp(Process):
         self.setup(folderList)
         # allows repeat cycling through the pictures
         self.pictures = cycle(ImageTk.PhotoImage(image) for image in self.image_files) if len(self.image_files)!=0 else []
-        self.picture_display = tk.Label(self.root, fg="red",font=("Courier",44))
-        self.picture_display['text']="Loading components.\n Please wait";
+        self.picture_display = tk.Label(self.root, bd=0,fg="red",font=("Courier",44))
+        self.root.bind('<Button-1>',self.stop)
+        self.picture_display['text']="Loading components.\n Please wait"
         self.picture_display.pack()
         self.root.configure(background='black')
         print("resolution:",(self.root.winfo_screenwidth(),self.root.winfo_screenheight()))
@@ -58,7 +59,10 @@ class SlideShowApp(Process):
                     something=self.newPerson.get()
                     if something[0]=="#": # "#" denotes an incoming message
                        self.picture_display['text']=something[1:]
-                    else:
+                    else: #something is the folder name
+                        #self.picture_display.config(image='')
+                        #self.picture_display['text']="{} found. Loading {}'s album".format(something)
+                        
                         self.addFolder(something)
                 except:
                     break
@@ -74,9 +78,9 @@ class SlideShowApp(Process):
     def clone(self):
         _clone=SlideShowApp(self.folderList,self.delay,self.lock)
         return _clone
-    def stop(self):
+    def stop(self,event):
         self.root.destroy()
-        self.isstop=True
+        self.exitQueue.put("x")
         
     def startSlideShow():
         self.start()
@@ -99,12 +103,12 @@ class SlideShowApp(Process):
             imgFileExtension=("gif","jpg","png","jpeg")
             #imglist=[]
             imgNameList=[files for roots,dirs,files in os.walk(path, topdown=True)][0]
-            #print("File list: ",imgNameList)
+            print("File list: ",imgNameList)
 
             #check which one is an image
             #imgchecker={file: any(file.lower().endswith(ext) for ext in imgFileExtension) for file in os.listdir()}
             imgchecker={file: file.lower().endswith(imgFileExtension) for file in imgNameList}
-            #print(imgchecker)
+            print(imgchecker)
             #add the images to a list
             for file_name in imgchecker:
                 if imgchecker[file_name]:
@@ -119,11 +123,6 @@ class SlideShowApp(Process):
                     #resizing the image to current resolution
                     self.image_files.append(raw_image.resize((iwidth,iheight), Image.BILINEAR))
 
-#getting current display resolution (Windows)
-#user32 = ctypes.windll.user32
-#width, height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-
-#print(os.listdir())
 if __name__ == "__main__":
     # set milliseconds time between slides
     delay = 3000
@@ -131,6 +130,7 @@ if __name__ == "__main__":
     
     app = SlideShowApp([], delay, lock)
     app.newPerson=Queue()
+    app.exitQueue=Queue()
     app.start()
     p=Process(target=run_face_rec, args=(app,))
     p.start()
