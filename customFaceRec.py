@@ -89,7 +89,7 @@ def run_face_rec(app):
                             app.newPerson.put(known_name)
                             print(app.newPerson.qsize())
                             #app.lock.release()
-                    found+=1
+                        found+=1
                     break
                     
             print("{} detected!".format(name))
