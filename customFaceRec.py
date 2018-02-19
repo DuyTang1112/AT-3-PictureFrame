@@ -10,7 +10,7 @@ import numpy as np
 import os
 from multiprocessing import Process
 
-def run_face_rec(app):
+def run_face_rec(app=None):
     # Get a reference to the Raspberry Pi camera.
     # If this fails, make sure you have a camera connected to the RPi and that you
     # enabled your camera in raspi-config and rebooted first.

@@ -6,6 +6,7 @@ def convert_bytes(num):
                return num ,x
           num/=1024
 #default size=(1024,768)
+#resize every images in ../users folder and set the filename to begin like _name
 def resizeImage(path=os.getcwd()+"/users", size=(640,480)):
      for f in os.listdir(path):
           if f[0]!="_":

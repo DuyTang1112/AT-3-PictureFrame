@@ -4,7 +4,7 @@ import os
 import ctypes
 import time
 #import threading
-from customFaceRec import *
+
 from multiprocessing import Process, Lock, Queue
 from collections import deque
 try:
@@ -32,6 +32,7 @@ class SlideShowApp(Process):
     def initialize(self,folderList,delay):
         #tk.Tk.__init__(self)
         self.root=tk.Tk()
+        self.okToQuit=False
         # set x, y position only
         #self.geometry('+{}+{}'.format(x, y))
         self.root.attributes("-fullscreen", True)
@@ -59,6 +60,7 @@ class SlideShowApp(Process):
                     something=self.newPerson.get()
                     if something[0]=="#": # "#" denotes an incoming message
                        self.picture_display['text']=something[1:]
+                       self.okToQuit=True
                     else: #something is the folder name
                         #self.picture_display.config(image='')
                         #self.picture_display['text']="{} found. Loading {}'s album".format(something)
@@ -79,6 +81,8 @@ class SlideShowApp(Process):
         _clone=SlideShowApp(self.folderList,self.delay,self.lock)
         return _clone
     def stop(self,event):
+        if not self.okToQuit:
+            return
         self.root.destroy()
         self.exitQueue.put("x")
         
@@ -123,7 +127,7 @@ class SlideShowApp(Process):
                     #resizing the image to current resolution
                     self.image_files.append(raw_image.resize((iwidth,iheight), Image.BILINEAR))
 
-if __name__ == "__main__":
+def main():
     # set milliseconds time between slides
     delay = 3000
     lock=Lock()
@@ -132,10 +136,14 @@ if __name__ == "__main__":
     app.newPerson=Queue()
     app.exitQueue=Queue()
     app.start()
-    p=Process(target=run_face_rec, args=(app,))
+    import customFaceRec
+    p=Process(target=customFaceRec.run_face_rec, args=(app,))
     p.start()
     p.join()
     #run_face_rec(app) #running face recognition will populate the lis of recognizable persons
     app.join()
     #app.terminate()
     #app.start()
+if __name__ == "__main__":
+    main()
+    
