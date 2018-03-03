@@ -3,12 +3,13 @@ from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFil
 import shutil
 import os, sys
 from resizeScript import *
-
+from multiprocessing import Process, Lock, Queue
 class At3(QWidget):
     
     def __init__(self):
         super(At3, self).__init__()
         self.initUI()
+        self.encodings=None
         
         
     def initUI(self):
@@ -46,8 +47,26 @@ class At3(QWidget):
         exit()
 
     def slideshow(self):
-        import slideshow
-        slideshow.main()
+        if self.encodings==None:
+            from slideshow import SlideShowApp
+        app = SlideShowApp()
+        app.newPerson=Queue()
+        app.exitQueue=Queue()
+        app.start()
+        #from customFaceRec import RecognizeScript
+        #s=RecognizeScript(app)
+        #s.start()
+        #s.join()
+        if self.encodings==None:
+            import customFaceRec
+        p=Process(target=customFaceRec.run_face_rec, args=(app,self.encodings))
+        p.start()
+        p.join()
+        
+        #run_face_rec(app) #running face recognition will populate the lis of recognizable persons
+        app.join()
+        
+        #slideshow.main()
         pass
     def AddImageID(self):
         filename,_filter = QFileDialog.getOpenFileNames(self, 'Select image',

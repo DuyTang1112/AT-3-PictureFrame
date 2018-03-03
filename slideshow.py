@@ -15,7 +15,7 @@ except ImportError:
     import tkinter as tk
 class SlideShowApp(Process):
     '''Tk window/label adjusts to size of image'''
-    def __init__(self, folderList, delay,lock):
+    def __init__(self, folderList=[], delay=3000,lock=Lock()):
         self.folderList=folderList
         self.delay=delay
         self.lock=lock
@@ -128,18 +128,21 @@ class SlideShowApp(Process):
                     self.image_files.append(raw_image.resize((iwidth,iheight), Image.BILINEAR))
 
 def main():
-    # set milliseconds time between slides
-    delay = 3000
-    lock=Lock()
     
-    app = SlideShowApp([], delay, lock)
+    
+    app = SlideShowApp()
     app.newPerson=Queue()
     app.exitQueue=Queue()
     app.start()
+    #from customFaceRec import RecognizeScript
+    #s=RecognizeScript(app)
+    #s.start()
+    #s.join()
     import customFaceRec
     p=Process(target=customFaceRec.run_face_rec, args=(app,))
     p.start()
     p.join()
+    
     #run_face_rec(app) #running face recognition will populate the lis of recognizable persons
     app.join()
     #app.terminate()
