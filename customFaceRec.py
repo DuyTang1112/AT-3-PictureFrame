@@ -25,8 +25,8 @@ def readLastModified():
     fh.close()
     return lm
 
-def run_face_rec(app=None,known_encodings=None):
-    known_encodings=known_encodings if known_encodings!=None else {}
+def run_face_rec(app=None,known_encodings={}):
+    
     # Get a reference to the Raspberry Pi camera.
     # If this fails, make sure you have a camera connected to the RPi and that you
     # enabled your camera in raspi-config and rebooted first.
@@ -46,9 +46,13 @@ def run_face_rec(app=None,known_encodings=None):
     filelist=[files for r,dirs,files in os.walk(path,topdown=True)][0] #get the list of all files
     imgList=[]
     #Select the file with name that like this "_abc.jpeg"
-    lm=readLastModified() 
+    lm=readLastModified()
+    #print(lm)
+    #print(filelist)
+    #print(known_encodings.keys())
     lines_to_write=[]
     for file in filelist:
+        #check if file is image and in the right format
         if file.lower().endswith(imgFileExt) and file[0]=="_":
             #check if new file or file has changed
             person=file[1:file.find(".")]
@@ -109,11 +113,8 @@ def run_face_rec(app=None,known_encodings=None):
                     if known_name not in folderList:
                         folderList[known_name]=True
                         if app!=None:
-                            #app.lock.acquire()
-                            #app.addFolder(known_name)
                             app.newPerson.put(known_name)
                             print(app.newPerson.qsize())
-                            #app.lock.release()
                         found+=1
                     break
                     

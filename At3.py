@@ -9,7 +9,7 @@ class At3(QWidget):
     def __init__(self):
         super(At3, self).__init__()
         self.initUI()
-        self.encodings=None
+        self.encodings={}
         
         
     def initUI(self):
@@ -47,7 +47,7 @@ class At3(QWidget):
         exit()
 
     def slideshow(self):
-        if self.encodings==None:
+        if len(self.encodings)==0:
             from slideshow import SlideShowApp
         app = SlideShowApp()
         app.newPerson=Queue()
@@ -57,7 +57,7 @@ class At3(QWidget):
         #s=RecognizeScript(app)
         #s.start()
         #s.join()
-        if self.encodings==None:
+        if len(self.encodings)==0:
             import customFaceRec
         p=Process(target=customFaceRec.run_face_rec, args=(app,self.encodings))
         p.start()

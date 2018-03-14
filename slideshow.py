@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 import os
 import ctypes
 import time
+from FlickrService import *
 #import threading
 
 from multiprocessing import Process, Lock, Queue
@@ -16,14 +17,12 @@ except ImportError:
 class SlideShowApp(Process):
     '''Tk window/label adjusts to size of image'''
     def __init__(self, folderList=[], delay=3000,lock=Lock()):
-        self.folderList=folderList
+        self.folderList=set(folderList)
         self.delay=delay
         self.lock=lock
         Process.__init__(self)
         
-        
     def run(self):
-        
         self.initialize(self.folderList,self.delay)
         
     def callback(self):
@@ -46,6 +45,7 @@ class SlideShowApp(Process):
         self.picture_display.pack()
         self.root.configure(background='black')
         print("resolution:",(self.root.winfo_screenwidth(),self.root.winfo_screenheight()))
+        self.ImportFromFlickr()
         self.show_slides()
         self.root.mainloop()
         self.isstop=False
@@ -90,7 +90,7 @@ class SlideShowApp(Process):
         self.start()
         
     def addFolder(self,folder):
-        self.folderList.append(folder)
+        self.folderList.add(folder)
         self.setup([folder])
         #self.setup(self.folderList)
         #self.pictures = cycle(ImageTk.PhotoImage(image) for image in self.image_files)
@@ -102,6 +102,7 @@ class SlideShowApp(Process):
             #path and image folder name
             path=os.getcwd()+"/"+folder
             if not os.path.exists(path):
+                os.mkdir(path)
                 continue
             #getting the list of file in current directory
             imgFileExtension=("gif","jpg","png","jpeg")
@@ -126,6 +127,14 @@ class SlideShowApp(Process):
                     iwidth=int(iwidth*scalew)
                     #resizing the image to current resolution
                     self.image_files.append(raw_image.resize((iwidth,iheight), Image.BILINEAR))
+                    
+    def ImportFromFlickr(self):
+        #downloadPhotos()
+        p=Process(target=downloadPhotos)
+        p.start()
+        
+        self.root.after(1000*60*5, self.ImportFromFlickr)
+        
 
 def main():
     
