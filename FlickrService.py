@@ -19,7 +19,7 @@ def downloadPhotos():
     print('key={} secret={}'.format(api_key,api_secret))
     f.close()
     database=FlickrDAL().readID()
-
+    #print(database)
     flickr = flickrapi.FlickrAPI(api_key, api_secret,format='parsed-json',cache=True)
     print('Authenticating...')
 

@@ -4,6 +4,7 @@ import os
 import ctypes
 import time
 from FlickrService import *
+import random
 #import threading
 
 from multiprocessing import Process, Lock, Queue
@@ -127,6 +128,15 @@ class SlideShowApp(Process):
                     iwidth=int(iwidth*scalew)
                     #resizing the image to current resolution
                     self.image_files.append(raw_image.resize((iwidth,iheight), Image.BILINEAR))
+                    pass
+                pass
+            pass
+        self.shuffleImages()
+        pass
+    
+    def shuffleImages(self):
+        random.shuffle(self.image_files)
+        pass
                     
     def ImportFromFlickr(self):
         #downloadPhotos()
