@@ -45,6 +45,8 @@ def downloadPhotos():
     for name,id in database:
         if not os.path.exists(os.getcwd() +'/{}'.format(name)):
             os.mkdir(os.getcwd() +'/{}'.format(name))
+        if id==None:
+            continue
         photos = flickr.photos.search(user_id=id)
         photolist=photos['photos']['photo']
         #print(photolist)
@@ -55,7 +57,7 @@ def downloadPhotos():
                 print(link)
                 filename=link.split('/')[-1]
                 path=os.getcwd() +'/{}/{}'.format(name,filename)
-                print(path)
+                #print(path)
                 urllib.request.urlretrieve(link, path)
             except:
                 e = sys.exc_info()[0]

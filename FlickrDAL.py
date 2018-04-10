@@ -39,4 +39,4 @@ class FlickrDAL:
 if __name__=="__main__":
     flickrDal=FlickrDAL()
     for name,id in flickrDal.readID():
-        print(name,id)
+        print(name,id if id!=None else "nope")
