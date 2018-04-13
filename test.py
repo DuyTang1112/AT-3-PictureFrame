@@ -1,4 +1,5 @@
 import os
+import pickle
 #file chooser GUI. Point to external device directory and ask to inport an image
 def chooseFile(multi=True):
     import tkinter
@@ -17,4 +18,8 @@ def chooseFile(multi=True):
 
 if __name__=="__main__":
     #chooseFile()
-    print(chooseFile())
+    with open("tag","rb") as f:
+        h=pickle.load(f)
+    for i in h:
+        print("%s: %s"%(i,h[i]) + str(len(set(h[i].split(";")))))
+    

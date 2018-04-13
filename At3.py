@@ -6,6 +6,7 @@ import shutil
 import os, sys
 from multiprocessing import Process, Lock, Queue
 from AddIDWindow import *
+from FlickrService import *
 class At3(QStackedWidget):
     
     def __init__(self):
@@ -17,6 +18,7 @@ class At3(QStackedWidget):
         self.addWidget(self.addId) #1
         self.encodings={}
         self.showFullScreen()
+        self.count=0
         
         
     def initUI(self):
@@ -72,13 +74,16 @@ class At3(QStackedWidget):
         app.newPerson=Queue()
         app.exitQueue=Queue()
         app.start()
+        downloadPhotos()
         #from customFaceRec import RecognizeScript
         #s=RecognizeScript(app)
         #s.start()
         #s.join()
         if len(self.encodings)==0:
             import customFaceRec
-        p=Process(target=customFaceRec.run_face_rec, args=(app,self.encodings))
+        #customFaceRec.tag()
+        p=Process(target=customFaceRec.run_face_rec, args=(app,))
+        self.count+=1
         p.start()
         p.join()
         
@@ -88,13 +93,7 @@ class At3(QStackedWidget):
         #slideshow.main()
         pass
     def AddImageID(self):
-        """filename,_filter = QFileDialog.getOpenFileNames(self, 'Select image',
-                                                       "/media/pi",
-                                                      '(*.jpeg *.jpg *.png *.bmp)')
-        for filePath in filename:
-            #save the file
-            dest=os.getcwd()+"/users"
-            shutil.copy2(filePath,dest)"""
+        
         self.setCurrentIndex(1)
         # resize images in ~/users folder    
         

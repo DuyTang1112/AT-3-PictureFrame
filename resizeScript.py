@@ -21,9 +21,27 @@ def resizeImage(path=os.getcwd()+"/users", size=(300,300)):
                #im.save(path+"/__"+f,"JPEG")
                os.remove(filepath)
              except IOError as err:
-                 print ("cannot reduce image for ", infile)
+                 print ("cannot reduce image")
                  print(err)
-
-
+def resizeFlickr():
+     print("Resizing photos...")
+     path=os.getcwd()+"/FlickrPhotos" 
+     size=(700,700)
+     for f in os.listdir(path):
+          if True:
+             try :
+               filepath=path+"/"+f
+               im = Image.open(filepath)
+               im.thumbnail(size, Image.ANTIALIAS)
+               im.save(path+"/"+f)
+               #num,t= convert_bytes(os.stat(filepath).st_size)
+               #im = Image.open(path+"/"+f)
+               #im.thumbnail(size, Image.ANTIALIAS)
+               #im.save(path+"/__"+f,"JPEG")
+               #os.remove(filepath)
+             except IOError as err:
+                 print ("cannot reduce image")
+                 print(err)
+     print("Resizing photos... Done")
 if __name__=="__main__":
     resizeImage()

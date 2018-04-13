@@ -6,6 +6,8 @@ import urllib
 from FlickrDAL import FlickrDAL
 import os
 import sys
+from resizeScript import *
+
 
 
 def downloadPhotos():
@@ -18,8 +20,6 @@ def downloadPhotos():
     api_secret=u'{}'.format(f.readline())
     print('key={} secret={}'.format(api_key,api_secret))
     f.close()
-    database=FlickrDAL().readID()
-    #print(database)
     flickr = flickrapi.FlickrAPI(api_key, api_secret,format='parsed-json',cache=True)
     print('Authenticating...')
 
@@ -40,6 +40,10 @@ def downloadPhotos():
 
         # Trade the request token for an access token
         flickr.get_access_token(verifier)
+    
+    database=[("FlickrPhotos","163308125@N07")]
+    #print(database)
+    
 
     print('Importing images from Flickr....')
     for name,id in database:
@@ -53,7 +57,7 @@ def downloadPhotos():
         for image in photolist:
             #print(flickrapi.shorturl.url(image['id']))
             try:
-                link=flickr.photos.getSizes(photo_id=image['id'])['sizes']['size'][-3]['source'] #-1 index to get the original image
+                link=flickr.photos.getSizes(photo_id=image['id'])['sizes']['size'][-2]['source'] #-1 index to get the original image
                 print(link)
                 filename=link.split('/')[-1]
                 path=os.getcwd() +'/{}/{}'.format(name,filename)
@@ -62,6 +66,7 @@ def downloadPhotos():
             except:
                 e = sys.exc_info()[0]
                 print("Something happened: {}".format(e))
+    resizeFlickr()
 
 if __name__=="__main__":
     downloadPhotos()

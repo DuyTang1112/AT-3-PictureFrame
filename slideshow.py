@@ -5,6 +5,7 @@ import ctypes
 import time
 from FlickrService import *
 import random
+import pickle
 #import threading
 
 from multiprocessing import Process, Lock, Queue
@@ -37,7 +38,7 @@ class SlideShowApp(Process):
         #self.geometry('+{}+{}'.format(x, y))
         self.root.attributes("-fullscreen", True)
         self.image_files=[]
-        self.setup(folderList)
+        #self.setup(folderList)
         # allows repeat cycling through the pictures
         self.pictures = cycle(ImageTk.PhotoImage(image) for image in self.image_files) if len(self.image_files)!=0 else []
         self.picture_display = tk.Label(self.root, bd=0,fg="red",font=("Courier",44))
@@ -46,7 +47,7 @@ class SlideShowApp(Process):
         self.picture_display.pack()
         self.root.configure(background='black')
         print("resolution:",(self.root.winfo_screenwidth(),self.root.winfo_screenheight()))
-        self.ImportFromFlickr()
+        self.root.after(1000*30*60, self.ImportFromFlickr)
         self.show_slides()
         self.root.mainloop()
         self.isstop=False
@@ -62,7 +63,7 @@ class SlideShowApp(Process):
                     if something[0]=="#": # "#" denotes an incoming message
                        self.picture_display['text']=something[1:]
                        self.okToQuit=True
-                    else: #something is the folder name
+                    else: #something is the folder name list
                         #self.picture_display.config(image='')
                         #self.picture_display['text']="{} found. Loading {}'s album".format(something)
                         
@@ -87,50 +88,54 @@ class SlideShowApp(Process):
         self.root.destroy()
         self.exitQueue.put("x")
         
-    def startSlideShow():
+    def startSlideShow(self):
         self.start()
         
-    def addFolder(self,folder):
-        self.folderList.add(folder)
-        self.setup([folder])
+    def addFolder(self,folderList):
+        #self.folderList.add(folder)
+        self.setup(folderList)
         #self.setup(self.folderList)
         #self.pictures = cycle(ImageTk.PhotoImage(image) for image in self.image_files)
         
     def setup(self,folderList):
+        if len(folderList)==0:
+            return
+        print("Importing photos for this set")
+        print(folderList)
         width,height=self.root.winfo_screenwidth(),self.root.winfo_screenheight()
-        for folder in folderList:
-            #folder="Youssef"
-            #path and image folder name
-            path=os.getcwd()+"/"+folder
-            if not os.path.exists(path):
-                os.mkdir(path)
-                continue
-            #getting the list of file in current directory
-            imgFileExtension=("gif","jpg","png","jpeg")
-            #imglist=[]
-            imgNameList=[files for roots,dirs,files in os.walk(path, topdown=True)][0]
-            print("File list: ",imgNameList)
-
-            #check which one is an image
-            #imgchecker={file: any(file.lower().endswith(ext) for ext in imgFileExtension) for file in os.listdir()}
-            imgchecker={file: file.lower().endswith(imgFileExtension) for file in imgNameList}
-            print(imgchecker)
-            #add the images to a list
-            for file_name in imgchecker:
-                if imgchecker[file_name]:
-                    subpath=path+"/"+file_name
-                    
-                    raw_image=Image.open(subpath)
-                    iwidth,iheight=raw_image.size
-                    scalew=height/iheight
-                    #scale the image along the height of the monitor
-                    iheight=height
-                    iwidth=int(iwidth*scalew)
-                    #resizing the image to current resolution
-                    self.image_files.append(raw_image.resize((iwidth,iheight), Image.BILINEAR))
-                    pass
-                pass
+        self.image_files=[]
+        path=os.getcwd()+"/FlickrPhotos"
+        nameset=set(folderList)
+        if not os.path.exists(path):
+            os.mkdir(path)
+            return
+        #getting the list of file in the directory
+        imgFileExtension=("gif","jpg","png","jpeg")
+        #imglist=[]
+        imgNameList=[files for roots,dirs,files in os.walk(path, topdown=True)][0]
+        
+        #get the image mapping
+        if not os.path.exists(os.getcwd()+"/tag"):
+            return
+        with open("tag","rb") as f:
+            h=pickle.load(f)
+        #add the images to a list
+        for file_name in imgNameList:
+            subpath=path+"/"+file_name
+            imgsetname=set(h[file_name].split(";"))
+            #if the set of person on this picture is a subset of the recognized set
+            if nameset.issubset(imgsetname):
+                raw_image=Image.open(subpath)
+                iwidth,iheight=raw_image.size
+                scalew=height/iheight
+                #scale the image along the height of the monitor
+                iheight=height
+                iwidth=int(iwidth*scalew)
+                #resizing the image to current resolution
+                self.image_files.append(raw_image.resize((iwidth,iheight), Image.BILINEAR))
+                
             pass
+        
         self.shuffleImages()
         pass
     
@@ -139,11 +144,13 @@ class SlideShowApp(Process):
         pass
                     
     def ImportFromFlickr(self):
-        #downloadPhotos()
-        p=Process(target=downloadPhotos)
+        downloadPhotos()
+        #p=Process(target=downloadPhotos)
+        #p.start()
+        import customFaceRec
+        p=Process(target=customFaceRec.tag)
         p.start()
-        
-        self.root.after(1000*60*5, self.ImportFromFlickr)
+        self.root.after(1000*30, self.ImportFromFlickr)
         
 
 def main():
@@ -157,10 +164,7 @@ def main():
     #s=RecognizeScript(app)
     #s.start()
     #s.join()
-    import customFaceRec
-    p=Process(target=customFaceRec.run_face_rec, args=(app,))
-    p.start()
-    p.join()
+    
     
     #run_face_rec(app) #running face recognition will populate the lis of recognizable persons
     app.join()

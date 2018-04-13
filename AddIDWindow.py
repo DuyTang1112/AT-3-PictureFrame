@@ -76,6 +76,7 @@ class AddIdWidget(QWidget):
         shutil.copy2(self.url,dest)
         resizeImage()
         FlickrDAL().insertUser(name)
+        os.remove(os.getcwd()+"\tag")
         #going back
         self.back()
         pass
