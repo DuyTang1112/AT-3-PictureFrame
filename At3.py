@@ -41,9 +41,9 @@ class At3(QStackedWidget):
         btnRun.clicked.connect(self.slideshow)
         #btnRun.move(self.width*9/20, self.height*30/100)  
 
-        btnAddF= QPushButton('Add Flickr Account', self)
+        #btnAddF= QPushButton('Add Flickr Account', self)
         #btnAddF.resize(btnAddF.sizeHint())
-        btnAddF.clicked.connect(self.AddFlickrAcc)
+        #btnAddF.clicked.connect(self.AddFlickrAcc)
         #btnAddF.move(self.width*9/20, self.height*40/100)
         
         btnExit = QPushButton('Exit', self)
@@ -52,7 +52,7 @@ class At3(QStackedWidget):
         #btnExit.move(self.width*9/20, self.height*50/100)  
         vbox.addWidget(btnAdd)
         vbox.addWidget(btnRun)
-        vbox.addWidget(btnAddF)
+        #vbox.addWidget(btnAddF)
         vbox.addWidget(btnExit)
         self.main.setLayout(vbox)
         

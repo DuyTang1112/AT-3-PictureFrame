@@ -22,4 +22,5 @@ if __name__=="__main__":
         h=pickle.load(f)
     for i in h:
         print("%s: %s"%(i,h[i]) + str(len(set(h[i].split(";")))))
+    print(set([1,2,5,4])==set([4,1,2,3]))
     

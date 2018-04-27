@@ -35,6 +35,11 @@ def deleteFlickr():
 def readEncodings(path=os.getcwd()+"/users"):
     # Load a sample picture and learn how to recognize it.
     print("Loading known face image(s)")
+    if os.path.exists(os.getcwd()+"/enc"):
+        h=None
+        with open("enc","rb") as f:
+            h=pickle.load(f)
+        return h
     known_encodings=None
     #----------------reading from "users" folder-------------------------
     known_encodings={}
@@ -63,20 +68,21 @@ def readEncodings(path=os.getcwd()+"/users"):
         print("Generating encodings for "+person)
         face_encoding=face_recognition.face_encodings(face_recognition.load_image_file(path+"/"+filename))[0]
         known_encodings[person]=face_encoding
+    #-----write to a file------
+    with open("enc","wb") as f:
+        pickle.dump(known_encodings,f)
     return known_encodings
 
-def tag(threshold=0.50,known_encodings=None):
+def tag(threshold=0.50):
     h={}
     if os.path.exists(os.getcwd()+"/tag"):
         with open("tag","rb") as f:
             h=pickle.load(f)
     """tag the images with names on it"""
-    if known_encodings==None:
-        known_encodings=readEncodings()
+    #if known_encodings==None:
+    #    known_encodings=readEncodings()
     print("Begin tagging photos....")
     flickrdir=os.getcwd()+"/FlickrPhotos"
-    names=[n for n in known_encodings] #known names
-    encodings=[known_encodings[i] for i in known_encodings] #known encodings
     filelist=os.listdir(flickrdir)
     #scroll through each pictures
     for filename in filelist:
@@ -84,32 +90,15 @@ def tag(threshold=0.50,known_encodings=None):
             continue
         ext= filename[filename.rfind("."):]
         #get the list of encodings from img
-        img_face_encodings=face_recognition.face_encodings(face_recognition.load_image_file(flickrdir+"/"+filename))
-        img_rename=""
-        namelist=set() #list of names that matches
-        #scroll through each encodings
-        for i in range(len(img_face_encodings)):
-            img_face_encoding=img_face_encodings[i]
-            #match = face_recognition.compare_faces(encodings, img_face_encoding,threshold)
-            distance=face_recognition.face_distance(encodings, img_face_encoding)
-            match=np.argmin(distance)
-            if distance[match]<=threshold:
-                img_rename+=names[match]+";"
-                namelist.add(names[match])
-            #scroll throught the match list
-            """for j in range(len(match)):
-                if match[j]:
-                    img_rename+=names[j]+";"
-                    namelist.add(names[j])
-                    break"""
-                        
-        if len(namelist)*len(img_rename)>0:#if found faces
-            #os.rename(flickrdir+"/"+filename,flickrdir+"/"+img_rename[:-1]+ext)#remove the last ';'
-            h[filename]=img_rename[:-1]
-        print("done tagging %s"%(filename))
+        inputImg=face_recognition.load_image_file(flickrdir+"/"+filename)
+        face_loc=face_recognition.face_locations(inputImg)
+        img_face_encodings=face_recognition.face_encodings(inputImg, face_loc,2)
+        h[filename]=img_face_encodings
+        print("Done tagging %s"%(filename))
     with open("tag","wb") as f:
         pickle.dump(h,f)
     #scroll through the encodings
+    return h
     pass
 
 
@@ -124,13 +113,10 @@ def run_face_rec(app=None):
     camera.resolution = (width, height)
     output = np.empty((height, width, 3), dtype=np.uint8)
     threshold=0.50 #how strict the camera should recognize
-    known_encodings=None
-    if known_encodings==None:
-        known_encodings=readEncodings(path)
     #writeLastModified(lines_to_write)# write the list of read id
     
     #---------------tagging the images--------------------
-    tag(threshold,known_encodings)
+    file_enc=tag(threshold)
     #Initialize some variables
     face_locations = []
     face_encodings = []
@@ -142,7 +128,7 @@ def run_face_rec(app=None):
         if app!=None:
             if app.exitQueue.qsize()>0:
                 if app.exitQueue.get()=='x':
-                    deleteFlickr()
+                    #deleteFlickr()
                     break
         # Grab a single frame of video from the RPi camera as a numpy array
         camera.capture(output, format="rgb")
@@ -151,19 +137,19 @@ def run_face_rec(app=None):
         face_locations = face_recognition.face_locations(output)
         print("Found {} face(s)".format(len(face_locations)))
         face_encodings = face_recognition.face_encodings(output, face_locations)
-        nameList=[]#list of names that matches
+        nameList=[]#list of file that matches
         # Loop over each face found in the frame to see if it's someone we know.
         for face_encoding in face_encodings:
             # See if the face is a match for the known face(s)
             name = "<Unknown Person>"
-            for known_name in known_encodings:
-                known_encoding=known_encodings[known_name]
-                match = face_recognition.compare_faces([known_encoding], face_encoding,threshold)
-                if match[0]:
-                    name=known_name
-                    nameList.append(name)
-                    break  
-            print("{} detected!".format(name))
+            for filename in file_enc :
+                file_encodings=file_enc[filename]
+                match = face_recognition.compare_faces(file_encodings, face_encoding,threshold)
+                for m in match:
+                    if m:
+                        nameList.append(filename)
+                        break
+            print("{} detected!".format("Face"))
         if len(nameList)>0:
             if app!=None:
                 print(nameList)
@@ -172,7 +158,8 @@ def run_face_rec(app=None):
     
     camera.close()
     print("Stop capturing")
-    return known_encodings
+
+    #return known_encodings
 
 
 def test(s):

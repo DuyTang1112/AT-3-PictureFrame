@@ -22,6 +22,7 @@ class SlideShowApp(Process):
         self.folderList=set(folderList)
         self.delay=delay
         self.lock=lock
+        self.prevSet=set()
         Process.__init__(self)
         
     def run(self):
@@ -98,33 +99,27 @@ class SlideShowApp(Process):
         #self.pictures = cycle(ImageTk.PhotoImage(image) for image in self.image_files)
         
     def setup(self,folderList):
-        if len(folderList)==0:
-            return
-        print("Importing photos for this set")
-        print(folderList)
-        width,height=self.root.winfo_screenwidth(),self.root.winfo_screenheight()
-        self.image_files=[]
-        path=os.getcwd()+"/FlickrPhotos"
-        nameset=set(folderList)
-        if not os.path.exists(path):
-            os.mkdir(path)
-            return
-        #getting the list of file in the directory
-        imgFileExtension=("gif","jpg","png","jpeg")
-        #imglist=[]
-        imgNameList=[files for roots,dirs,files in os.walk(path, topdown=True)][0]
-        
-        #get the image mapping
-        if not os.path.exists(os.getcwd()+"/tag"):
-            return
-        with open("tag","rb") as f:
-            h=pickle.load(f)
-        #add the images to a list
-        for file_name in imgNameList:
-            subpath=path+"/"+file_name
-            imgsetname=set(h[file_name].split(";"))
-            #if the set of person on this picture is a subset of the recognized set
-            if nameset.issubset(imgsetname):
+        """"folderList contains the img file name"""
+        try:
+            if len(folderList)==0:
+                return
+            width,height=self.root.winfo_screenwidth(),self.root.winfo_screenheight()
+            
+            path=os.getcwd()+"/FlickrPhotos"
+            nameset=set(folderList)
+            if nameset==self.prevSet:
+                return
+            if not os.path.exists(path):
+                os.mkdir(path)
+                return
+            self.image_files=[]
+            print("Importing photos for this set")
+            print(folderList)
+            #add the images to a list
+            for file_name in folderList:                
+                subpath=path+"/"+file_name
+                if not os.path.exists(subpath):
+                    continue
                 raw_image=Image.open(subpath)
                 iwidth,iheight=raw_image.size
                 scalew=height/iheight
@@ -133,12 +128,13 @@ class SlideShowApp(Process):
                 iwidth=int(iwidth*scalew)
                 #resizing the image to current resolution
                 self.image_files.append(raw_image.resize((iwidth,iheight), Image.BILINEAR))
-                
+                    
+                pass
+            
+            self.shuffleImages()
             pass
-        
-        self.shuffleImages()
-        pass
-    
+        except Exception as e:
+            print(e)
     def shuffleImages(self):
         random.shuffle(self.image_files)
         pass

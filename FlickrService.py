@@ -44,7 +44,7 @@ def downloadPhotos():
     database=[("FlickrPhotos","163308125@N07")]
     #print(database)
     
-
+    existSet=set(os.listdir(os.getcwd()+"/FlickrPhotos"))
     print('Importing images from Flickr....')
     for name,id in database:
         if not os.path.exists(os.getcwd() +'/{}'.format(name)):
@@ -58,10 +58,13 @@ def downloadPhotos():
             #print(flickrapi.shorturl.url(image['id']))
             try:
                 link=flickr.photos.getSizes(photo_id=image['id'])['sizes']['size'][-2]['source'] #-1 index to get the original image
-                print(link)
+                
                 filename=link.split('/')[-1]
+                if filename in existSet:
+                    continue
                 path=os.getcwd() +'/{}/{}'.format(name,filename)
                 #print(path)
+                print(link)
                 urllib.request.urlretrieve(link, path)
             except:
                 e = sys.exc_info()[0]
